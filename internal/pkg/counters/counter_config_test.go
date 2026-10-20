@@ -90,6 +90,24 @@ func TestInvalidConfigMapData(t *testing.T) {
 	require.Empty(t, records, "Should have no records")
 }
 
+func TestMalformedConfigMapCSV(t *testing.T) {
+	clientset := fake.NewSimpleClientset(&v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "configmap1",
+			Namespace: "default",
+		},
+		Data: map[string]string{"metrics": "DCGM_FI_DEV_GPU_TEMP, gauge, temperature\nDCGM_FI_DEV_SM_CLOCK, gauge"},
+	})
+
+	source := appconfig.ConfigMapMetricSource{
+		Namespace: "default",
+		Name:      "configmap1",
+	}
+	records, err := readConfigMapSource(context.Background(), clientset, source)
+	require.ErrorIs(t, err, csv.ErrFieldCount, "Should have returned the CSV parse error")
+	require.Empty(t, records, "Should have no records")
+}
+
 func TestInvalidConfigMapName(t *testing.T) {
 	clientset := fake.NewSimpleClientset(&v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{

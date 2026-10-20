@@ -249,6 +249,9 @@ func readConfigMapSource(
 	r := csv.NewReader(strings.NewReader(cm.Data[appconfig.DefaultConfigMapKey]))
 	r.Comment = '#'
 	records, err := r.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("malformed configmap contents; err: %w", err)
+	}
 
 	if len(records) == 0 {
 		return nil, fmt.Errorf("malformed configmap contents; err: no metrics found")
